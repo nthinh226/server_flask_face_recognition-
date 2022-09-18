@@ -58,6 +58,6 @@ def getImage():
     #     'image': img
     # })
 
-    return jsonify({'message': 'Receipted', 'placement': str(classes_x)})
+    return jsonify({'message': 'Received', 'placement': str(classes_x)})
 
 
