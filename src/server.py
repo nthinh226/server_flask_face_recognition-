@@ -62,27 +62,39 @@ def signUp():
 
 @app.route("/api/v1/training", methods=['POST'])
 def trainingFace():
-    image = json.loads(request.data)['file']
-    image_string = base64.b64decode(image)
-    # print(image_string)
+    try:
+        base64_string_array = json.loads(request.data)['file']
+        img = []
+        for i in range(len(base64_string_array)):
 
-    jpg_as_np = np.frombuffer(image_string, dtype=np.uint8)
-    # print(jpg_as_np)
-    img = cv2.imdecode(jpg_as_np, flags=0)
-    # print(img)
+            image_string = base64.b64decode(base64_string_array[i])
+            # print(image_string)
 
-    im = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
-    # print(im)
-    im = im.reshape(784)
-    # print(im)
+            jpg_as_np = np.frombuffer(image_string, dtype=np.uint8)
+            # print(jpg_as_np)
 
-    loaded_model = tf.keras.models.load_model('/home/phuongpt/dev/faceId/models/my_h5_model.h5')
-    predict_x = loaded_model.predict(np.array([im]))
-    print(f'predict = {predict_x}, type: {type(predict_x)}')
+            img.append(cv2.imdecode(jpg_as_np, flags=0))
+            # print(img)
 
-    classes_x = np.argmax(predict_x, axis=1)
+            # im = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
+            # # print(im)
+            # im = im.reshape(784)
+            # # print(im)
+            #
+            # loaded_model = tf.keras.models.load_model('/home/phuongpt/dev/faceId/models/my_h5_model.h5')
+            # predict_x = loaded_model.predict(np.array([im]))
+            # print(f'predict = {predict_x}, type: {type(predict_x)}')
+            #
+            # classes_x = np.argmax(predict_x, axis=1)
 
-    return jsonify({'message': 'Received', 'placement': str(classes_x)})
+        # print(img)
+        return jsonify({'message': 'Received'})
+    except Exception as error:
+
+        res = jsonify({'message': 'Bad request', 'content': str(error)})
+        res.status_code = 400
+
+        return res
 
 
 @app.route('/api/v1/loginByAccount', methods=['POST'])
