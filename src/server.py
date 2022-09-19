@@ -4,7 +4,8 @@ import json
 import numpy as np
 import tensorflow as tf
 from flask import Flask, jsonify, request
-from pymongo import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_pymongo import PyMongo
 
 # Flask Server Backend
 app = Flask(__name__)
@@ -17,8 +18,8 @@ model = tf.keras.Sequential([
 model.save('/home/phuongpt/dev/faceId/models/my_h5_model.h5')
 
 # Database
-client = MongoClient('localhost:27017')
-db = client.myDatabase
+app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
+mongo = PyMongo(app)
 
 # Start Backend
 if __name__ == '__main__':
@@ -31,8 +32,36 @@ def hello():
     return "Welcome to Python Flask!"
 
 
-@app.route("/getimage", methods=['POST'])
-def getImage():
+@app.route('/api/v1/register', methods=['POST'])
+def signUp():
+    try:
+        _json = json.loads(request.data)
+        _name = _json['name']
+        _username = _json['username']
+        _password = _json['password']
+
+        hash_password = generate_password_hash(_password)
+
+        mongo.db.users.insert_one({
+            'name': _name,
+            'username': _username,
+            'password': hash_password
+        })
+
+        res = jsonify({'message': 'User added successfully'})
+        res.status_code = 201
+
+        return res
+    except Exception as error:
+
+        res = jsonify({'message': 'Bad request', 'content': str(error)})
+        res.status_code = 400
+
+        return res
+
+
+@app.route("/api/v1/training", methods=['POST'])
+def trainingFace():
     image = json.loads(request.data)['file']
     image_string = base64.b64decode(image)
     # print(image_string)
@@ -41,7 +70,6 @@ def getImage():
     # print(jpg_as_np)
     img = cv2.imdecode(jpg_as_np, flags=0)
     # print(img)
-    cv2.imwrite('save_image.jpeg', img)
 
     im = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
     # print(im)
@@ -54,10 +82,36 @@ def getImage():
 
     classes_x = np.argmax(predict_x, axis=1)
 
-    # status = db.users.insert_one({
-    #     'image': img
-    # })
-
     return jsonify({'message': 'Received', 'placement': str(classes_x)})
 
 
+@app.route('/api/v1/loginByAccount', methods=['POST'])
+def signInByAccount():
+    try:
+        _json = json.loads(request.data)
+        username = _json['username']
+        password = _json['password']
+
+        if username and password:
+            user = mongo.db.users.find_one({'username': username})
+            if user is None:
+                return {'message': 'User not found'}
+            isMatch = check_password_hash(user['password'], password)
+            if isMatch is False:
+                return {'message': 'Username or password is not correct'}
+
+        res = jsonify({'message': 'Login successfully', 'name': user['name']})
+        res.status_code = 200
+
+        return res
+    except Exception as error:
+
+        res = jsonify({'message': 'Bad request', 'content': str(error)})
+        res.status_code = 400
+
+        return res
+
+
+@app.route('/api/v1/loginByFace', methods=['POST'])
+def signInByFace():
+    pass
