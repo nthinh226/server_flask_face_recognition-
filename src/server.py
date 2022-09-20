@@ -2,7 +2,7 @@ import base64
 import cv2
 import json
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 from flask import Flask, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_pymongo import PyMongo
@@ -11,11 +11,11 @@ from flask_pymongo import PyMongo
 app = Flask(__name__)
 
 # save model.h5
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(5, input_shape=(784,)),
-    tf.keras.layers.Softmax()
-])
-model.save('/home/phuongpt/dev/faceId/models/my_h5_model.h5')
+# model = tf.keras.Sequential([
+#     tf.keras.layers.Dense(5, input_shape=(784,)),
+#     tf.keras.layers.Softmax()
+# ])
+# model.save('/home/phuongpt/dev/faceId/models/my_h5_model.h5')
 
 # Database
 app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
