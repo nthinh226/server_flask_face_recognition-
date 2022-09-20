@@ -74,7 +74,8 @@ def trainingFace():
             # print(jpg_as_np)
 
             img.append(cv2.imdecode(jpg_as_np, flags=0))
-            # print(img)
+            print(img)
+            cv2.imwrite(f'color_img{i}.jpg', img[i])
 
             # im = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
             # # print(im)
