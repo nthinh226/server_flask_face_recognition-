@@ -40,6 +40,12 @@ def signUp():
         _username = _json['username']
         _password = _json['password']
 
+        user = mongo.db.users.find_one({'username': _username})
+        if user:
+            res = jsonify({'message': 'username in use'})
+            res.status_code = 403
+            return res
+
         hash_password = generate_password_hash(_password)
 
         mongo.db.users.insert_one({
@@ -50,13 +56,11 @@ def signUp():
 
         res = jsonify({'message': 'User added successfully'})
         res.status_code = 201
-
         return res
     except Exception as error:
 
         res = jsonify({'message': 'Bad request', 'content': str(error)})
         res.status_code = 400
-
         return res
 
 
@@ -74,7 +78,7 @@ def trainingFace():
             # print(jpg_as_np)
 
             img.append(cv2.imdecode(jpg_as_np, flags=0))
-            print(img)
+            print(np.array(img[i]))
             cv2.imwrite(f'color_img{i}.jpg', img[i])
 
             # im = cv2.resize(img, (28, 28), interpolation=cv2.INTER_AREA)
@@ -88,13 +92,13 @@ def trainingFace():
             #
             # classes_x = np.argmax(predict_x, axis=1)
 
-        # print(img)
-        return jsonify({'message': 'Received'})
+        res = jsonify({'message': 'Received'})
+        res.status_code = 200
+        return res
     except Exception as error:
 
         res = jsonify({'message': 'Bad request', 'content': str(error)})
         res.status_code = 400
-
         return res
 
 
@@ -108,20 +112,22 @@ def signInByAccount():
         if username and password:
             user = mongo.db.users.find_one({'username': username})
             if user is None:
-                return {'message': 'User not found'}
+                res = jsonify({'message': 'User not found'})
+                res.status_code = 404
+                return res
             isMatch = check_password_hash(user['password'], password)
             if isMatch is False:
-                return {'message': 'Username or password is not correct'}
+                res = jsonify({'message': 'Username or password is not correct'})
+                res.status_code = 400
+                return res
 
         res = jsonify({'message': 'Login successfully', 'name': user['name']})
         res.status_code = 200
-
         return res
     except Exception as error:
 
         res = jsonify({'message': 'Bad request', 'content': str(error)})
         res.status_code = 400
-
         return res
 
 
