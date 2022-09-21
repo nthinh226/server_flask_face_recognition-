@@ -20,13 +20,9 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
 mongo = PyMongo(app)
 
-# Start Backend
-if __name__ == '__main__':
-    app.run(debug=True)
-
 
 # Router
-@app.route("/")
+@app.route("/", methods=['GET'])
 def hello():
     return "Welcome to Python Flask!"
 
@@ -35,21 +31,23 @@ def hello():
 def signUp():
     try:
         _json = json.loads(request.data)
-        _name = _json['name']
-        _username = _json['username']
+        _fullName = _json['fullName']
+        _phone = _json['phone']
+        _email = _json['email']
         _password = _json['password']
 
-        user = mongo.db.users.find_one({'username': _username})
+        user = mongo.db.users.find_one({'email': _email})
         if user:
-            res = jsonify({'message': 'username in use'})
+            res = jsonify({'message': 'email in use'})
             res.status_code = 403
             return res
 
         hash_password = generate_password_hash(_password)
 
         mongo.db.users.insert_one({
-            'name': _name,
-            'username': _username,
+            'fullName': _fullName,
+            'phone': _phone,
+            'email': _email,
             'password': hash_password
         })
 
@@ -69,7 +67,6 @@ def trainingFace():
         base64_string_array = json.loads(request.data)['file']
         img = []
         for i in range(len(base64_string_array)):
-
             image_string = base64.b64decode(base64_string_array[i])
             # print(image_string)
 
@@ -105,23 +102,23 @@ def trainingFace():
 def signInByAccount():
     try:
         _json = json.loads(request.data)
-        username = _json['username']
+        email = _json['email']
         password = _json['password']
 
-        if username and password:
-            user = mongo.db.users.find_one({'username': username})
+        if email and password:
+            user = mongo.db.users.find_one({'email': email})
             if user is None:
-                res = jsonify({'message': 'User not found'})
+                res = jsonify({'message': 'User not exists'})
                 res.status_code = 404
                 return res
 
             isMatch = check_password_hash(user['password'], password)
             if isMatch is False:
-                res = jsonify({'message': 'Username or password is not correct'})
+                res = jsonify({'message': 'Email or password is not correct'})
                 res.status_code = 400
                 return res
 
-        res = jsonify({'message': 'Login successfully', 'name': user['name']})
+        res = jsonify({'message': 'Login successfully', 'fullName': user['fullName']})
         res.status_code = 200
         return res
     except Exception as error:
@@ -134,3 +131,8 @@ def signInByAccount():
 @app.route('/api/v1/loginByFace', methods=['POST'])
 def signInByFace():
     pass
+
+
+# Start Backend
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port='6868')
