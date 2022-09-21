@@ -115,6 +115,7 @@ def signInByAccount():
                 res = jsonify({'message': 'User not found'})
                 res.status_code = 404
                 return res
+
             isMatch = check_password_hash(user['password'], password)
             if isMatch is False:
                 res = jsonify({'message': 'Username or password is not correct'})
