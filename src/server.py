@@ -10,7 +10,6 @@ from flask_pymongo import PyMongo
 # Flask Server Backend
 app = Flask(__name__)
 
-# save model.h5
 # model = tf.keras.Sequential([
 #     tf.keras.layers.Dense(5, input_shape=(784,)),
 #     tf.keras.layers.Softmax()
